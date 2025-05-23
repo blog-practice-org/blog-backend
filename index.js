@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
@@ -30,6 +32,10 @@ mongoose
   .catch((err) => {
     console.log("MongoDB 연결 실패 ", err);
   });
+
+const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS);
+const secretKey = process.env.JWT_SECRET;
+const tokenLife = process.env.JWT_EXPIRATION;
 
 app.listen(port, () => {
   console.log(`${port}번 포트에서 실행 중`);
