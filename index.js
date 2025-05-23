@@ -60,8 +60,40 @@ app.post("/signup", async (req, res) => {
       userId: savedUser._id,
     });
   } catch (err) {
-    console.log("에러 ", err);
+    console.log("회원가입 오류: ", err);
     res.status(500).json({ error: "서버 에러" });
+  }
+});
+
+// 로그인
+app.post("/login", async (req, res) => {
+  try {
+    const { id, password } = req.body;
+    const userDoc = await userModel.findOne({ id });
+    if (!userDoc) return res.status(401).json({ error: "없는 사용자입니다." });
+
+    const passwordCheck = bcrypt.compareSync(password, userDoc.password);
+    if (!passwordCheck) {
+      return res.status(401).json({ error: "비밀번호가 틀렸습니다." });
+    } else {
+      const { _id, id } = userDoc;
+      const payload = { _id, id };
+      const token = jwt.sign(payload, secretKey, {
+        expiresIn: tokenLife,
+      });
+
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          maxAge: 1000 * 60 * 60,
+        })
+        .json({
+          userId: userDoc.userId,
+        });
+    }
+  } catch (error) {
+    console.error("로그인 오류: ", error);
+    res.status(500).json({ error: "로그인 실패" });
   }
 });
 
