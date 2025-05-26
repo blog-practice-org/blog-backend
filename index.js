@@ -527,6 +527,40 @@ app.get("/user/:id/likes", async (req, res) => {
   }
 });
 
+// 본인 정보 수정
+app.put("/user/update", async (req, res) => {
+  try {
+    const { token } = req.cookies;
+    if (!token) {
+      return res.status(401).json({ error: "로그인 필요" });
+    }
+
+    const userInfo = jwt.verify(token, secretKey);
+    let updateData = {};
+
+    if (req.body.password) {
+      updateData.password = bcrypt.hashSync(req.body.password, saltRounds);
+    }
+
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userInfo._id,
+      updateData,
+      {
+        new: true,
+        select: "-password",
+      }
+    );
+
+    res.json({
+      message: "사용자 정보가 수정되었습니다.",
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "사용자 정보 수정에 실패했습니다." });
+  }
+});
+
 app.listen(port, () => {
   console.log(`${port}번 포트에서 실행 중`);
 });
