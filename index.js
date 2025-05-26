@@ -504,6 +504,29 @@ app.get("/user/:id/comments", async (req, res) => {
   }
 });
 
+// 특정 사용자가 좋아요 클릭한 포스트 조회
+app.get("/user/:id/likes", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userModel.findOne({ id });
+
+    if (!user) {
+      return res.status(404).json({ error: "사용자를 찾을 수 없습니다." });
+    }
+
+    // 사용자가 좋아요한 게시물 찾기
+    const likedPosts = await postModel
+      .find({ likes: user._id })
+      .sort({ createdAt: -1 });
+
+    res.json(likedPosts);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "사용자 좋아요 게시물 조회에 실패했습니다." });
+  }
+});
+
 app.listen(port, () => {
   console.log(`${port}번 포트에서 실행 중`);
 });
