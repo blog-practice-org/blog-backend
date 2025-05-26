@@ -382,6 +382,23 @@ app.get("/comments/:postId", async (req, res) => {
     res.status(500).json({ error: "댓글 목록 조회에 실패했습니다." });
   }
 });
+
+// 댓글 삭제
+app.delete("/comments/:commentId", async (req, res) => {
+  try {
+    const { commentId } = req.params;
+
+    const comment = await commentModel.findByIdAndDelete(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "댓글을 찾을 수 없습니다." });
+    }
+
+    res.json({ message: "댓글이 삭제되었습니다." });
+  } catch (err) {
+    res.status(500).json({ error: "댓글 삭제에 실패했습니다." });
+  }
+});
+
 app.listen(port, () => {
   console.log(`${port}번 포트에서 실행 중`);
 });
