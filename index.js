@@ -11,6 +11,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { userModel } from "./model/user.js";
 import { postModel } from "./model/post.js";
+import { commentModel } from "./model/comment.js";
 
 dotenv.config();
 
@@ -347,6 +348,24 @@ app.post("/like/:postId", async (req, res) => {
     res.json(post);
   } catch (err) {
     res.status(500).json({ error: "좋아요 토글 기능 오류" });
+  }
+});
+
+// ----------------------
+// 댓글 등록
+app.post("/comments", async (req, res) => {
+  try {
+    const { content, author, postId } = req.body;
+
+    const newComment = await commentModel.create({
+      content,
+      author,
+      postId,
+    });
+
+    res.status(201).json(newComment);
+  } catch (error) {
+    res.status(500).json({ error: "댓글 작성에 실패했습니다." });
   }
 });
 
