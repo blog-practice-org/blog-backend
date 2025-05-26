@@ -369,6 +369,19 @@ app.post("/comments", async (req, res) => {
   }
 });
 
+// 댓글 목록 조회
+app.get("/comments/:postId", async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const comments = await commentModel
+      .find({ postId })
+      .sort({ createdAt: -1 });
+
+    res.json(comments);
+  } catch (err) {
+    res.status(500).json({ error: "댓글 목록 조회에 실패했습니다." });
+  }
+});
 app.listen(port, () => {
   console.log(`${port}번 포트에서 실행 중`);
 });
