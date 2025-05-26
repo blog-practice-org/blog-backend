@@ -335,7 +335,7 @@ app.delete("/post/:postId", async (req, res) => {
 });
 
 // 포스트 좋아요 토글
-app.post("/like/:postId", async (req, res) => {
+app.post("/post/:postId/like", async (req, res) => {
   try {
     const { postId } = req.params;
     const { token } = req.cookies;
