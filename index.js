@@ -70,7 +70,6 @@ app.post("/signup", async (req, res) => {
 
     res.status(201).json({
       message: "회원가입 성공",
-      userId: savedUser._id,
     });
   } catch (err) {
     console.log("회원가입 오류: ", err);
@@ -96,7 +95,7 @@ app.post("/login", async (req, res) => {
       });
 
       res.cookie("token", token, cookieOptions).json({
-        userId: userDoc.userId,
+        userId: _id,
       });
     }
   } catch (error) {
@@ -244,7 +243,7 @@ app.put("/post/:postId", multerUpload.single("files"), async (req, res) => {
 
     // 로그인 확인
     if (!token) {
-      return res.status(401).json({ error: "로그인 필요" });
+      return res.status(401).json({ error: "로그인이 필요합니다." });
     }
 
     // 토큰 검증
@@ -312,8 +311,42 @@ app.delete("/post/:postId", async (req, res) => {
     }
     res.json({ message: "게시물이 삭제되었습니다." });
   } catch (err) {
-    console.error("게시물 삭제 오류:", err);
     res.status(500).json({ error: "게시물 삭제에 실패했습니다." });
+  }
+});
+
+// 포스트 좋아요 토글
+app.post("/like/:postId", async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { token } = req.cookies;
+
+    // 로그인 확인
+    if (!token) {
+      return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+
+    // 토큰 검증
+    const userInfo = jwt.verify(token, secretKey);
+
+    const post = await postModel.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "게시물을 찾을 수 없습니다." });
+    }
+
+    const likeIndex = post.likes.findIndex(
+      (id) => id.toString() === userInfo._id
+    );
+    if (likeIndex > -1) {
+      post.likes.splice(likeIndex, 1);
+    } else {
+      post.likes.push(userInfo._id);
+    }
+
+    await post.save();
+    res.json(post);
+  } catch (err) {
+    res.status(500).json({ error: "좋아요 토글 기능 오류" });
   }
 });
 
