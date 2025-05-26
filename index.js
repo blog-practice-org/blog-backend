@@ -478,6 +478,18 @@ app.get("/user/:id", async (req, res) => {
   }
 });
 
+// 특정 사용자가 작성한 포스트 조회
+app.get("/user/:id/posts", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const posts = await postModel.find({ author: id }).sort({ createdAt: -1 });
+
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ error: "사용자 게시물 조회에 실패했습니다." });
+  }
+});
+
 app.listen(port, () => {
   console.log(`${port}번 포트에서 실행 중`);
 });
