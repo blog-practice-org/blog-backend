@@ -97,6 +97,27 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// 회원 정보 조회
+app.get("/profile", (req, res) => {
+  const { token } = req.cookies;
+  if (!token) return res.json({ error: "로그인이 필요합니다." });
+
+  jwt.verify(token, secretKey, (err, info) => {
+    if (err) return res.json({ error: "로그인이 필요합니다." });
+    res.json(info);
+  });
+});
+
+// 로그아웃
+app.post("/logout", (req, res) => {
+  res
+    .cookie("token", "", {
+      httpOnly: true,
+      maxAge: 0,
+    })
+    .json({ message: "로그아웃 되었습니다." });
+});
+
 app.listen(port, () => {
   console.log(`${port}번 포트에서 실행 중`);
 });
