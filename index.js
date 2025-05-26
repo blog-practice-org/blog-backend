@@ -5,7 +5,12 @@ import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import { userModel } from "./model/user.js";
+import { postModel } from "./model/post.js";
 
 dotenv.config();
 
@@ -121,6 +126,69 @@ app.post("/logout", (req, res) => {
   res
     .cookie("token", "", logoutCookieOptions)
     .json({ message: "로그아웃 되었습니다." });
+});
+
+// ----------------------
+// __dirname 설정 (ES 모듈에서는 __dirname이 기본적으로 제공되지 않음)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadDir = path.join(__dirname, "..", "uploads");
+
+// uploads 폴더의 파일들을 /uploads 경로로 제공
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// 정적 파일 접근 시 CORS 오류를 방지하기 위한 설정
+app.get("/uploads/:filename", (req, res) => {
+  const { filename } = req.params;
+  res.sendFile(path.join(__dirname, "uploads", filename));
+});
+
+// 업로드 디렉토리가 없으면 생성
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+// multer 스토리지 설정
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${Math.round(
+      Math.random() * 1e9
+    )}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  },
+});
+
+// 기본 multer 인스턴스
+const multerUpload = multer({ storage });
+
+// ----------------------
+// 포스트 등록
+app.post("/postWrite", multerUpload.single("files"), async (req, res) => {
+  try {
+    const { title, summary, content } = req.body;
+    const { token } = req.cookies;
+    if (!token) {
+      return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+
+    const userInfo = jwt.verify(token, secretKey);
+
+    const postData = {
+      title,
+      summary,
+      content,
+      cover: req.file ? req.file.path : null, // 파일 경로 저장
+      author: userInfo.id,
+    };
+
+    await postModel.create(postData);
+    console.log("포스트 등록 성공");
+
+    res.json({ message: "포스트 글쓰기 성공" });
+  } catch (err) {
+    return res.status(500).json({ error: "서버 에러" });
+  }
 });
 
 app.listen(port, () => {
