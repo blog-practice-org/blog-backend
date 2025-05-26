@@ -67,7 +67,7 @@ app.post("/signup", async (req, res) => {
       id,
       password: bcrypt.hashSync(password, saltRounds),
     });
-    const savedUser = await userDoc.save();
+    await userDoc.save();
 
     res.status(201).json({
       message: "회원가입 성공",
@@ -105,17 +105,6 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// 회원 정보 조회
-app.get("/profile", (req, res) => {
-  const { token } = req.cookies;
-  if (!token) return res.json({ error: "로그인이 필요합니다." });
-
-  jwt.verify(token, secretKey, (err, info) => {
-    if (err) return res.json({ error: "로그인이 필요합니다." });
-    res.json(info);
-  });
-});
-
 // 로그아웃
 app.post("/logout", (req, res) => {
   const logoutCookieOptions = {
@@ -126,6 +115,17 @@ app.post("/logout", (req, res) => {
   res
     .cookie("token", "", logoutCookieOptions)
     .json({ message: "로그아웃 되었습니다." });
+});
+
+// 본인 정보 조회
+app.get("/profile", (req, res) => {
+  const { token } = req.cookies;
+  if (!token) return res.json({ error: "로그인이 필요합니다." });
+
+  jwt.verify(token, secretKey, (err, info) => {
+    if (err) return res.json({ error: "로그인이 필요합니다." });
+    res.json(info);
+  });
 });
 
 // ----------------------
@@ -457,6 +457,24 @@ app.delete("/comments/:commentId", async (req, res) => {
     res.json({ message: "댓글이 삭제되었습니다." });
   } catch (err) {
     res.status(500).json({ error: "댓글 삭제에 실패했습니다." });
+  }
+});
+
+// ----------------------
+// 특정 사용자 정보 조회
+app.get("/user/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userModel.findOne({ id }, { password: 0 });
+
+    if (!user) {
+      return res.status(404).json({ error: "사용자를 찾을 수 없습니다." });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error("사용자 정보 조회 오류:", err);
+    res.status(500).json({ error: "사용자 정보 조회에 실패했습니다." });
   }
 });
 
