@@ -383,6 +383,49 @@ app.get("/comments/:postId", async (req, res) => {
   }
 });
 
+// 댓글 수정
+app.put("/comments/:commentId", async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { content } = req.body;
+
+    // 댓글 조회
+    const comment = await commentModel.findById(commentId);
+
+    // 댓글이 존재하지 않을 경우
+    if (!comment) {
+      return res.status(404).json({ error: "댓글을 찾을 수 없습니다." });
+    }
+
+    // 토큰 검증
+    const { token } = req.cookies;
+    if (!token) {
+      return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+
+    const userInfo = jwt.verify(token, secretKey);
+
+    // 댓글 작성자만 수정할 수 있도록 권한 체크
+    if (comment.author !== userInfo.id) {
+      return res
+        .status(403)
+        .json({ error: "자신의 댓글만 수정할 수 있습니다." });
+    }
+
+    // 댓글 업데이트
+    const updatedComment = await commentModel.findByIdAndUpdate(
+      commentId,
+      { content },
+      { new: true }
+    );
+
+    res.json(updatedComment);
+  } catch (err) {
+    console.error("게시물 수정 오류:", err);
+    res.status(500).json({ error: "게시물 수정에 실패했습니다." });
+  }
+});
+
 // 댓글 삭제
 app.delete("/comments/:commentId", async (req, res) => {
   try {
