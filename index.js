@@ -38,6 +38,14 @@ const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS);
 const secretKey = process.env.JWT_SECRET;
 const tokenLife = process.env.JWT_EXPIRATION;
 
+const cookieOptions = {
+  httpOnly: true,
+  maxAge: 1000 * 60 * 60, // 1시간
+  secure: process.env.NODE_ENV === "production", // HTTPS에서만 쿠키 전송
+  sameSite: "strict", // CSRF 방지
+  path: "/", // 모든 경로에서 쿠키 접근 가능
+};
+
 // ----------------------
 // 회원가입
 app.post("/signup", async (req, res) => {
@@ -82,14 +90,9 @@ app.post("/login", async (req, res) => {
         expiresIn: tokenLife,
       });
 
-      res
-        .cookie("token", token, {
-          httpOnly: true,
-          maxAge: 1000 * 60 * 60,
-        })
-        .json({
-          userId: userDoc.userId,
-        });
+      res.cookie("token", token, cookieOptions).json({
+        userId: userDoc.userId,
+      });
     }
   } catch (error) {
     console.error("로그인 오류: ", error);
@@ -110,11 +113,13 @@ app.get("/profile", (req, res) => {
 
 // 로그아웃
 app.post("/logout", (req, res) => {
+  const logoutCookieOptions = {
+    ...cookieOptions,
+    maxAge: 0,
+  };
+
   res
-    .cookie("token", "", {
-      httpOnly: true,
-      maxAge: 0,
-    })
+    .cookie("token", "", logoutCookieOptions)
     .json({ message: "로그아웃 되었습니다." });
 });
 
