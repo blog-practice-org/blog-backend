@@ -235,6 +235,21 @@ app.get("/post/:postId", async (req, res) => {
   }
 });
 
+// 포스트 삭제
+app.delete("/post/:postId", async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const post = await postModel.findByIdAndDelete(postId);
+    if (!post) {
+      return res.status(404).json({ error: "게시물을 찾을 수 없습니다." });
+    }
+    res.json({ message: "게시물이 삭제되었습니다." });
+  } catch (err) {
+    console.error("게시물 삭제 오류:", err);
+    res.status(500).json({ error: "게시물 삭제에 실패했습니다." });
+  }
+});
+
 app.listen(port, () => {
   console.log(`${port}번 포트에서 실행 중`);
 });
