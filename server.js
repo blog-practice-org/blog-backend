@@ -12,6 +12,7 @@ import authRoutes from "./routes/authRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import kakaoAuthRoutes from "./routes/kakaoAuthRoutes.js";
 
 // 데이터베이스 연결
 import connectDB from "./config/db.js";
@@ -46,6 +47,7 @@ app.use("/auth", authRoutes);
 app.use("/posts", postRoutes);
 app.use("/comments", commentRoutes);
 app.use("/users", userRoutes);
+app.use("/auth/kakao", kakaoAuthRoutes);
 
 // 기본 루트 경로 핸들러 추가
 app.get("/", (req, res) => {
