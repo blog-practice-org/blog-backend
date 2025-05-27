@@ -9,6 +9,6 @@ export const cookieOptions = {
   httpOnly: true,
   maxAge: 1000 * 60 * 60, // 1시간
   secure: true, // HTTPS에서만 쿠키 전송
-  sameSite: "strict", // CSRF 방지
+  sameSite: "none", // 크로스 도메인 요청 허용
   path: "/", // 모든 경로에서 쿠키 접근 가능
 };
