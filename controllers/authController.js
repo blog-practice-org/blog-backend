@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { cookieOptions, secretKey, tokenLife } from "../config/jwt.js";
 import { User } from "../models/user.js";
+import { Post } from "../models/post.js";
+import { Comment } from "../models/comment.js";
 
 dotenv.config();
 
@@ -37,7 +39,8 @@ export const login = async (req, res) => {
   try {
     const { id, password } = req.body;
     const userDoc = await User.findOne({ id });
-    if (!userDoc) return res.status(401).json({ error: "없는 사용자입니다." });
+    if (!userDoc)
+      return res.status(401).json({ error: "존재하지 않는 사용자입니다." });
 
     const passwordCheck = bcrypt.compareSync(password, userDoc.password);
     if (!passwordCheck) {
@@ -79,4 +82,34 @@ export const getProfile = (req, res) => {
     if (err) return res.json({ error: "로그인이 필요합니다." });
     res.json(info);
   });
+};
+
+// 회원 탈퇴
+export const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const id = req.user.id;
+
+    // 사용자가 작성한 댓글 삭제
+    await Comment.deleteMany({ author: id });
+    // 사용자가 작성한 게시물 삭제
+    await Post.deleteMany({ author: id });
+    // 사용자가 좋아요한 게시물에서 사용자 ID 제거
+    await Post.updateMany({ likes: userId }, { $pull: { likes: userId } });
+    // 사용자 계정 삭제
+    await User.findByIdAndDelete(userId);
+
+    // 쿠키 제거 (로그아웃 처리)
+    const logoutCookieOptions = {
+      ...cookieOptions,
+      maxAge: 0,
+    };
+
+    res
+      .cookie("token", "", logoutCookieOptions)
+      .json({ message: "계정이 성공적으로 삭제되었습니다." });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "회원 탈퇴에 실패했습니다." });
+  }
 };
