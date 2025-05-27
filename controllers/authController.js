@@ -2,9 +2,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { cookieOptions, secretKey, tokenLife } from "../config/jwt.js";
-import { User } from "../models/user.js";
-import { Post } from "../models/post.js";
-import { Comment } from "../models/comment.js";
+import { User } from "../models/User.js";
+import { Post } from "../models/Post.js";
+import { Comment } from "../models/Comment.js";
 
 dotenv.config();
 

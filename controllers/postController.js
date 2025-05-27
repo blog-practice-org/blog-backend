@@ -1,8 +1,8 @@
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { Comment } from "../models/comment.js";
-import { Post } from "../models/post.js";
+import { Comment } from "../models/Comment.js";
+import { Post } from "../models/Post.js";
 
 // 포스트 등록
 export const createPost = async (req, res) => {

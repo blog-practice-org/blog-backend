@@ -1,4 +1,4 @@
-import { Comment } from "../models/comment.js";
+import { Comment } from "../models/Comment.js";
 
 // 댓글 등록
 export const createComment = async (req, res) => {

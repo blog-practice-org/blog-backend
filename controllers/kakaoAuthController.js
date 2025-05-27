@@ -2,7 +2,7 @@ import axios from "axios";
 import jwt from "jsonwebtoken";
 import { secretKey, tokenLife, cookieOptions } from "../config/jwt.js";
 import { kakaoConfig } from "../config/oauth.js";
-import { User } from "../models/user.js";
+import { User } from "../models/User.js";
 
 // 카카오 로그인 페이지로 리다이렉트
 export const kakaoLogin = (req, res) => {
